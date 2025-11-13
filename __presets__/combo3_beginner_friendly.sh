@@ -739,7 +739,6 @@ cat > ~/.config/micro/bindings.json << 'EOF'
 {
     "CtrlS": "Save",
     "CtrlQ": "Quit",
-    "CtrlW": "CloseTab",
     "CtrlZ": "Undo",
     "CtrlY": "Redo",
     "CtrlF": "Find",
