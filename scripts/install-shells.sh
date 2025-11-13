@@ -2,16 +2,42 @@
 # install-shells.sh - Install shells and shell frameworks
 # Idempotent: safe to run multiple times
 
-set -e
+# Function to safely install brew packages (continues even if already installed)
+safe_brew_install() {
+    local package="$1"
+    local is_cask="${2:-false}"
+    local output
+    
+    if [ "$is_cask" = "true" ]; then
+        if brew list --cask "$package" &> /dev/null; then
+            echo "✅ $package already installed (cask)"
+            return 0
+        fi
+        # Try to install and capture output
+        output=$(brew install --cask "$package" 2>&1) || {
+            if echo "$output" | grep -q "already an App"; then
+                echo "✅ $package already installed (app exists)"
+                return 0
+            fi
+            echo "⚠️  Failed to install $package (may already be installed), continuing..."
+            return 0
+        }
+    else
+        if command -v "$package" &> /dev/null || brew list "$package" &> /dev/null 2>&1; then
+            echo "✅ $package already installed"
+            return 0
+        fi
+        brew install "$package" || {
+            echo "⚠️  Failed to install $package (may already be installed), continuing..."
+            return 0
+        }
+    fi
+}
 
 echo "🐚 Installing shells..."
 
 # zsh (usually pre-installed on macOS, but ensure it's latest)
-if ! command -v zsh &> /dev/null; then
-    brew install zsh
-else
-    echo "✅ zsh already installed"
-fi
+safe_brew_install zsh
 
 # Install zsh plugin managers and frameworks
 echo "🔌 Installing zsh frameworks..."
@@ -25,19 +51,16 @@ else
 fi
 
 # Antidote (lightweight, fast zsh plugin manager)
-if ! command -v antidote &> /dev/null; then
-    echo "📦 Installing Antidote..."
-    brew install antidote
-else
-    echo "✅ Antidote already installed"
-fi
+safe_brew_install antidote
 
 # Fish shell
 if ! command -v fish &> /dev/null; then
     echo "🐟 Installing Fish shell..."
-    brew install fish
-    # Add fish to /etc/shells
-    echo $(which fish) | sudo tee -a /etc/shells
+    safe_brew_install fish
+    # Add fish to /etc/shells (only if not already there)
+    if ! grep -q "$(which fish)" /etc/shells 2>/dev/null; then
+        echo $(which fish) | sudo tee -a /etc/shells || echo "⚠️  Could not add fish to /etc/shells, continuing..."
+    fi
 else
     echo "✅ Fish already installed"
 fi
@@ -65,19 +88,13 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "🧪 Installing experimental shells..."
     
     # Nushell
-    if ! command -v nu &> /dev/null; then
-        brew install nushell
-    fi
+    safe_brew_install nushell
     
     # Elvish
-    if ! command -v elvish &> /dev/null; then
-        brew install elvish
-    fi
+    safe_brew_install elvish
     
     # Xonsh (Python-based)
-    if ! command -v xonsh &> /dev/null; then
-        brew install xonsh
-    fi
+    safe_brew_install xonsh
 fi
 
 echo "✅ Shell installation complete!"

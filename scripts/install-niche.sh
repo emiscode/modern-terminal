@@ -2,7 +2,37 @@
 # install-niche.sh - Install niche/experimental tools
 # Idempotent: safe to run multiple times
 
-set -e
+# Function to safely install brew packages (continues even if already installed)
+safe_brew_install() {
+    local package="$1"
+    local is_cask="${2:-false}"
+    local output
+    
+    if [ "$is_cask" = "true" ]; then
+        if brew list --cask "$package" &> /dev/null; then
+            echo "✅ $package already installed (cask)"
+            return 0
+        fi
+        # Try to install and capture output
+        output=$(brew install --cask "$package" 2>&1) || {
+            if echo "$output" | grep -q "already an App"; then
+                echo "✅ $package already installed (app exists)"
+                return 0
+            fi
+            echo "⚠️  Failed to install $package (may already be installed), continuing..."
+            return 0
+        }
+    else
+        if command -v "$package" &> /dev/null || brew list "$package" &> /dev/null 2>&1; then
+            echo "✅ $package already installed"
+            return 0
+        fi
+        brew install "$package" || {
+            echo "⚠️  Failed to install $package (may already be installed), continuing..."
+            return 0
+        }
+    fi
+}
 
 echo "🧪 Installing niche/experimental tools..."
 
@@ -12,25 +42,13 @@ read -p "Install terminal emulators (WezTerm, Alacritty, Ghostty)? [y/N] " -n 1 
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     # WezTerm
-    if ! brew list --cask wezterm &> /dev/null; then
-        brew install --cask wezterm
-    else
-        echo "✅ WezTerm already installed"
-    fi
+    safe_brew_install wezterm true
     
     # Alacritty
-    if ! brew list --cask alacritty &> /dev/null; then
-        brew install --cask alacritty
-    else
-        echo "✅ Alacritty already installed"
-    fi
+    safe_brew_install alacritty true
     
     # Ghostty
-    if ! brew list --cask ghostty &> /dev/null; then
-        brew install --cask ghostty
-    else
-        echo "✅ Ghostty already installed"
-    fi
+    safe_brew_install ghostty true
 fi
 
 # Additional tools
@@ -41,7 +59,7 @@ if ! command -v sk &> /dev/null; then
     read -p "Install skim (fzf alternative)? [y/N] " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        brew install skim
+        safe_brew_install skim
     fi
 fi
 
@@ -50,7 +68,7 @@ if ! command -v gitui &> /dev/null; then
     read -p "Install gitui (lazygit alternative)? [y/N] " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        brew install gitui
+        safe_brew_install gitui
     fi
 fi
 
@@ -59,7 +77,7 @@ if ! command -v git-extras &> /dev/null; then
     read -p "Install git-extras? [y/N] " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        brew install git-extras
+        safe_brew_install git-extras
     fi
 fi
 

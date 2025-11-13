@@ -2,7 +2,8 @@
 # install-all.sh - Master installation script
 # Runs all installation scripts in order
 
-set -e
+# Don't exit on error - let each script handle its own errors
+set +e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
@@ -14,34 +15,35 @@ echo ""
 chmod +x "$SCRIPT_DIR"/*.sh
 
 # Run installation scripts in order
+# Each script continues even if some packages fail to install
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Step 1/5: Core dependencies"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-"$SCRIPT_DIR/install-core.sh"
+"$SCRIPT_DIR/install-core.sh" || echo "⚠️  Core installation had some issues, continuing..."
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Step 2/5: Shells"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-"$SCRIPT_DIR/install-shells.sh"
+"$SCRIPT_DIR/install-shells.sh" || echo "⚠️  Shell installation had some issues, continuing..."
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Step 3/5: Editors"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-"$SCRIPT_DIR/install-editors.sh"
+"$SCRIPT_DIR/install-editors.sh" || echo "⚠️  Editor installation had some issues, continuing..."
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Step 4/5: Development tools"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-"$SCRIPT_DIR/install-devtools.sh"
+"$SCRIPT_DIR/install-devtools.sh" || echo "⚠️  Dev tools installation had some issues, continuing..."
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Step 5/5: Niche/Experimental tools"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-"$SCRIPT_DIR/install-niche.sh"
+"$SCRIPT_DIR/install-niche.sh" || echo "⚠️  Niche tools installation had some issues, continuing..."
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

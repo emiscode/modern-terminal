@@ -2,7 +2,37 @@
 # install-core.sh - Core dependencies and Homebrew setup
 # Idempotent: safe to run multiple times
 
-set -e
+# Function to safely install brew packages (continues even if already installed)
+safe_brew_install() {
+    local package="$1"
+    local is_cask="${2:-false}"
+    local output
+    
+    if [ "$is_cask" = "true" ]; then
+        if brew list --cask "$package" &> /dev/null; then
+            echo "✅ $package already installed (cask)"
+            return 0
+        fi
+        # Try to install and capture output
+        output=$(brew install --cask "$package" 2>&1) || {
+            if echo "$output" | grep -q "already an App"; then
+                echo "✅ $package already installed (app exists)"
+                return 0
+            fi
+            echo "⚠️  Failed to install $package (may already be installed), continuing..."
+            return 0
+        }
+    else
+        if command -v "$package" &> /dev/null || brew list "$package" &> /dev/null 2>&1; then
+            echo "✅ $package already installed"
+            return 0
+        fi
+        brew install "$package" || {
+            echo "⚠️  Failed to install $package (may already be installed), continuing..."
+            return 0
+        }
+    fi
+}
 
 echo "🔧 Installing core dependencies..."
 
@@ -22,25 +52,22 @@ fi
 
 # Update Homebrew
 echo "🔄 Updating Homebrew..."
-brew update
+brew update || echo "⚠️  Homebrew update failed, continuing..."
 
 # Install essential build tools
 echo "🔨 Installing build tools..."
-brew install git curl wget
+safe_brew_install git
+safe_brew_install curl
+safe_brew_install wget
 
 # Install Nerd Fonts (required for icons)
 echo "🎨 Installing Nerd Fonts..."
-brew install --cask font-jetbrains-mono-nerd-font \
-    font-fira-code-nerd-font \
-    font-iosevka-nerd-font || echo "⚠️  Some fonts may need manual installation from https://www.nerdfonts.com/"
+safe_brew_install font-jetbrains-mono-nerd-font true
+safe_brew_install font-fira-code-nerd-font true
+safe_brew_install font-iosevka-nerd-font true
 
 # Install dotfiles manager (chezmoi - universal, git-based)
-if ! command -v chezmoi &> /dev/null; then
-    echo "📁 Installing chezmoi (dotfiles manager)..."
-    brew install chezmoi
-else
-    echo "✅ chezmoi already installed"
-fi
+safe_brew_install chezmoi
 
 echo "✅ Core installation complete!"
 
