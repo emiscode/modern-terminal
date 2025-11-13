@@ -315,40 +315,40 @@ alias gd="git diff"
 
 # Helpful functions
 function mkcd
-    mkdir -p $argv[1]
-    cd $argv[1]
+    mkdir -p \$argv[1]
+    cd \$argv[1]
 end
 
 function extract
-    if test -f $argv[1]
-        switch $argv[1]
+    if test -f \$argv[1]
+        switch \$argv[1]
             case '*.tar.bz2'
-                tar xjf $argv[1]
+                tar xjf \$argv[1]
             case '*.tar.gz'
-                tar xzf $argv[1]
+                tar xzf \$argv[1]
             case '*.bz2'
-                bunzip2 $argv[1]
+                bunzip2 \$argv[1]
             case '*.rar'
-                unrar x $argv[1]
+                unrar x \$argv[1]
             case '*.gz'
-                gunzip $argv[1]
+                gunzip \$argv[1]
             case '*.tar'
-                tar xf $argv[1]
+                tar xf \$argv[1]
             case '*.tbz2'
-                tar xjf $argv[1]
+                tar xjf \$argv[1]
             case '*.tgz'
-                tar xzf $argv[1]
+                tar xzf \$argv[1]
             case '*.zip'
-                unzip $argv[1]
+                unzip \$argv[1]
             case '*.Z'
-                uncompress $argv[1]
+                uncompress \$argv[1]
             case '*.7z'
-                7z x $argv[1]
+                7z x \$argv[1]
             case '*'
-                echo "'$argv[1]' cannot be extracted"
+                echo "'\$argv[1]' cannot be extracted"
         end
     else
-        echo "'$argv[1]' is not a valid file"
+        echo "'\$argv[1]' is not a valid file"
     end
 end
 
@@ -368,7 +368,7 @@ end
 
 # FZF configuration - Gruvbox theme
 set -gx FZF_DEFAULT_COMMAND 'fd --type f --hidden --follow --exclude .git'
-set -gx FZF_CTRL_T_COMMAND "$FZF_DEFAULT_COMMAND"
+set -gx FZF_CTRL_T_COMMAND "\$FZF_DEFAULT_COMMAND"
 set -gx FZF_DEFAULT_OPTS "
 --color=bg+:#3c3836,bg:#282828,spinner:#fb4934,hl:#928374
 --color=fg:#ebdbb2,header:#928374,info:#8ec07c,pointer:#fb4934
@@ -381,11 +381,15 @@ set -gx FZF_DEFAULT_OPTS "
 # Yazi wrapper to change directory on exit
 function ya
     set tmp (mktemp -t "yazi-cwd.XXXXX")
-    yazi $argv --cwd-file="$tmp"
-    if set cwd (cat -- "$tmp"); and [ -n "$cwd" ]; and [ "$cwd" != "$PWD" ]
-        cd -- "$cwd"
+    if test (count \$argv) -eq 0
+        yazi --cwd-file="\$tmp"
+    else
+        yazi --cwd-file="\$tmp" \$argv
     end
-    rm -f -- "$tmp"
+    if set cwd (cat -- "\$tmp"); and [ -n "\$cwd" ]; and [ "\$cwd" != "\$PWD" ]
+        cd -- "\$cwd"
+    end
+    rm -f -- "\$tmp"
 end
 EOF
 
@@ -735,12 +739,11 @@ cat > ~/.config/micro/bindings.json << 'EOF'
 {
     "CtrlS": "Save",
     "CtrlQ": "Quit",
-    "CtrlW": "Close",
+    "CtrlW": "CloseTab",
     "CtrlZ": "Undo",
     "CtrlY": "Redo",
     "CtrlF": "Find",
     "CtrlH": "FindNext",
-    "CtrlR": "Replace",
     "CtrlA": "SelectAll",
     "CtrlC": "Copy",
     "CtrlX": "Cut",
