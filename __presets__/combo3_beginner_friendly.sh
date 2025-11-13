@@ -36,6 +36,80 @@ brew install fish
 # Install WezTerm
 brew install --cask wezterm
 
+# Ensure WezTerm CLI is accessible
+# WezTerm CLI is inside the app bundle, so we need to make it available in PATH
+LOCAL_BIN="$HOME/.local/bin"
+WEZTERM_CLI=""
+
+# Try to find WezTerm app in common locations
+if [ -f "/Applications/WezTerm.app/Contents/MacOS/wezterm" ]; then
+    WEZTERM_CLI="/Applications/WezTerm.app/Contents/MacOS/wezterm"
+else
+    # Check Caskroom - use brew --prefix to find the correct path
+    BREW_PREFIX=$(brew --prefix 2>/dev/null || echo "/opt/homebrew")
+    CASKROOM="$BREW_PREFIX/Caskroom/wezterm"
+    if [ -d "$CASKROOM" ]; then
+        # Look for actual app bundle (not symlinks) in version directories
+        for version_dir in "$CASKROOM"/*/; do
+            if [ -d "$version_dir" ]; then
+                # Look for directories containing WezTerm.app, excluding symlinks
+                for subdir in "$version_dir"*; do
+                    if [ -d "$subdir" ] && [ ! -L "$subdir" ]; then
+                        WEZTERM_APP="$subdir/WezTerm.app"
+                        if [ -d "$WEZTERM_APP" ] && [ ! -L "$WEZTERM_APP" ] && [ -f "$WEZTERM_APP/Contents/MacOS/wezterm" ]; then
+                            WEZTERM_CLI="$WEZTERM_APP/Contents/MacOS/wezterm"
+                            # Link the app to /Applications if not already there
+                            if [ ! -e "/Applications/WezTerm.app" ]; then
+                                echo "Linking WezTerm to /Applications..."
+                                ln -sf "$WEZTERM_APP" /Applications/WezTerm.app
+                            fi
+                            break 2
+                        fi
+                    fi
+                done
+            fi
+        done
+    fi
+fi
+
+if [ -n "$WEZTERM_CLI" ] && [ -f "$WEZTERM_CLI" ]; then
+    mkdir -p "$LOCAL_BIN"
+    # Create or update symlink
+    if [ -L "$LOCAL_BIN/wezterm" ]; then
+        # Remove existing symlink if it's broken or points to wrong location
+        if [ ! -e "$LOCAL_BIN/wezterm" ] || [ "$(readlink "$LOCAL_BIN/wezterm")" != "$WEZTERM_CLI" ]; then
+            rm -f "$LOCAL_BIN/wezterm"
+            ln -sf "$WEZTERM_CLI" "$LOCAL_BIN/wezterm"
+            echo "✅ Updated symlink for wezterm CLI"
+        else
+            echo "✅ WezTerm CLI symlink already exists"
+        fi
+    elif [ ! -f "$LOCAL_BIN/wezterm" ]; then
+        ln -sf "$WEZTERM_CLI" "$LOCAL_BIN/wezterm"
+        echo "✅ Created symlink for wezterm CLI"
+    fi
+    # Verify wezterm command works
+    if "$LOCAL_BIN/wezterm" --version &>/dev/null; then
+        echo "✅ WezTerm CLI is working"
+    else
+        echo "⚠️  WezTerm installed but CLI verification failed"
+    fi
+else
+    echo "⚠️  WezTerm app not found. Attempting to reinstall..."
+    brew reinstall --cask wezterm 2>/dev/null
+    # Try again after reinstall
+    if [ -f "/Applications/WezTerm.app/Contents/MacOS/wezterm" ]; then
+        WEZTERM_CLI="/Applications/WezTerm.app/Contents/MacOS/wezterm"
+        mkdir -p "$LOCAL_BIN"
+        ln -sf "$WEZTERM_CLI" "$LOCAL_BIN/wezterm"
+        echo "✅ WezTerm reinstalled and CLI symlink created"
+    else
+        echo "⚠️  WezTerm installation may be incomplete. You may need to:"
+        echo "   1. Manually install WezTerm from https://wezfurlong.org/wezterm/"
+        echo "   2. Or run: brew reinstall --cask wezterm"
+    fi
+fi
+
 # Install Zellij
 brew install zellij
 
@@ -611,10 +685,11 @@ echo "Installation Complete!"
 echo "=================================================="
 echo ""
 echo "Next steps:"
-echo "1. Launch WezTerm"
-echo "2. Set Fish as default shell: chsh -s /opt/homebrew/bin/fish"
-echo "3. Restart your terminal"
-echo "4. Register for Atuin sync: atuin register (optional)"
+echo "1. Restart your terminal or run: source ~/.config/fish/config.fish"
+echo "2. Verify WezTerm CLI: wezterm --version"
+echo "3. Launch WezTerm (from Applications or run: wezterm)"
+echo "4. Set Fish as default shell: chsh -s /opt/homebrew/bin/fish"
+echo "5. Register for Atuin sync: atuin register (optional)"
 echo ""
 echo "Quick start guide:"
 echo "  - Press Ctrl+R to search history (Atuin)"
