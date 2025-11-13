@@ -14,7 +14,70 @@
 # Theme: Gruvbox
 ###############################################################################
 
-set -e
+# Error handling - continue on errors but track failures
+set +e
+FAILED_INSTALLS=0
+
+# Function to safely install brew packages (continues even if already installed)
+safe_brew_install() {
+    local package="$1"
+    local is_cask="${2:-false}"
+    local output
+    
+    if [ "$is_cask" = "true" ]; then
+        if brew list --cask "$package" &> /dev/null; then
+            echo "✅ $package already installed (cask)"
+            return 0
+        fi
+        # Try to install and capture output
+        output=$(brew install --cask "$package" 2>&1) || {
+            if echo "$output" | grep -q "already an App"; then
+                echo "✅ $package already installed (app exists)"
+                return 0
+            fi
+            echo "⚠️  Failed to install $package (may already be installed), continuing..."
+            ((FAILED_INSTALLS++))
+            return 0
+        }
+    else
+        if command -v "$package" &> /dev/null || brew list "$package" &> /dev/null 2>&1; then
+            echo "✅ $package already installed"
+            return 0
+        fi
+        brew install "$package" || {
+            echo "⚠️  Failed to install $package (may already be installed), continuing..."
+            ((FAILED_INSTALLS++))
+            return 0
+        }
+    fi
+}
+
+# Detect system architecture and Homebrew paths
+if [[ $(uname -m) == "arm64" ]]; then
+    BREW_PREFIX="/opt/homebrew"
+    BREW_BIN="$BREW_PREFIX/bin"
+else
+    BREW_PREFIX="/usr/local"
+    BREW_BIN="$BREW_PREFIX/bin"
+fi
+
+# Get actual Homebrew prefix if available
+if command -v brew &> /dev/null; then
+    ACTUAL_BREW_PREFIX=$(brew --prefix 2>/dev/null || echo "$BREW_PREFIX")
+    BREW_BIN="$ACTUAL_BREW_PREFIX/bin"
+else
+    ACTUAL_BREW_PREFIX="$BREW_PREFIX"
+fi
+
+# Find fish executable path
+FISH_PATH=""
+if command -v fish &> /dev/null; then
+    FISH_PATH=$(command -v fish)
+elif [ -f "$BREW_BIN/fish" ]; then
+    FISH_PATH="$BREW_BIN/fish"
+else
+    FISH_PATH="$BREW_BIN/fish"  # Will be available after installation
+fi
 
 echo "=================================================="
 echo "Installing Combination 3: The Beginner-Friendly Stack"
@@ -24,6 +87,25 @@ echo "=================================================="
 if ! command -v brew &> /dev/null; then
     echo "Homebrew not found. Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    
+    # Add Homebrew to PATH
+    if [[ $(uname -m) == "arm64" ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+        # Add to shell profile if not already there
+        if ! grep -q 'eval "$(/opt/homebrew/bin/brew shellenv)"' ~/.zprofile 2>/dev/null; then
+            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+        fi
+    else
+        eval "$(/usr/local/bin/brew shellenv)"
+        if ! grep -q 'eval "$(/usr/local/bin/brew shellenv)"' ~/.zprofile 2>/dev/null; then
+            echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zprofile
+        fi
+    fi
+    
+    # Update paths after Homebrew installation
+    ACTUAL_BREW_PREFIX=$(brew --prefix 2>/dev/null || echo "$BREW_PREFIX")
+    BREW_BIN="$ACTUAL_BREW_PREFIX/bin"
+    FISH_PATH="$BREW_BIN/fish"
 fi
 
 echo ""
@@ -31,10 +113,10 @@ echo "Step 1: Installing core tools..."
 echo "=================================="
 
 # Install Fish shell
-brew install fish
+safe_brew_install fish
 
 # Install WezTerm
-brew install --cask wezterm
+safe_brew_install wezterm true
 
 # Ensure WezTerm CLI is accessible
 # WezTerm CLI is inside the app bundle, so we need to make it available in PATH
@@ -45,9 +127,8 @@ WEZTERM_CLI=""
 if [ -f "/Applications/WezTerm.app/Contents/MacOS/wezterm" ]; then
     WEZTERM_CLI="/Applications/WezTerm.app/Contents/MacOS/wezterm"
 else
-    # Check Caskroom - use brew --prefix to find the correct path
-    BREW_PREFIX=$(brew --prefix 2>/dev/null || echo "/opt/homebrew")
-    CASKROOM="$BREW_PREFIX/Caskroom/wezterm"
+    # Check Caskroom - use detected prefix
+    CASKROOM="$ACTUAL_BREW_PREFIX/Caskroom/wezterm"
     if [ -d "$CASKROOM" ]; then
         # Look for actual app bundle (not symlinks) in version directories
         for version_dir in "$CASKROOM"/*/; do
@@ -74,20 +155,24 @@ fi
 
 if [ -n "$WEZTERM_CLI" ] && [ -f "$WEZTERM_CLI" ]; then
     mkdir -p "$LOCAL_BIN"
-    # Create or update symlink
-    if [ -L "$LOCAL_BIN/wezterm" ]; then
-        # Remove existing symlink if it's broken or points to wrong location
-        if [ ! -e "$LOCAL_BIN/wezterm" ] || [ "$(readlink "$LOCAL_BIN/wezterm")" != "$WEZTERM_CLI" ]; then
-            rm -f "$LOCAL_BIN/wezterm"
-            ln -sf "$WEZTERM_CLI" "$LOCAL_BIN/wezterm"
-            echo "✅ Updated symlink for wezterm CLI"
-        else
-            echo "✅ WezTerm CLI symlink already exists"
+    WEZTERM_DIR=$(dirname "$WEZTERM_CLI")
+    
+    # WezTerm CLI needs wezterm-gui in the same directory, so symlink all required binaries
+    for binary in wezterm wezterm-gui wezterm-mux-server strip-ansi-escapes; do
+        if [ -f "$WEZTERM_DIR/$binary" ]; then
+            if [ -L "$LOCAL_BIN/$binary" ]; then
+                # Remove existing symlink if it's broken or points to wrong location
+                if [ ! -e "$LOCAL_BIN/$binary" ] || [ "$(readlink "$LOCAL_BIN/$binary")" != "$WEZTERM_DIR/$binary" ]; then
+                    rm -f "$LOCAL_BIN/$binary"
+                    ln -sf "$WEZTERM_DIR/$binary" "$LOCAL_BIN/$binary"
+                fi
+            elif [ ! -f "$LOCAL_BIN/$binary" ]; then
+                ln -sf "$WEZTERM_DIR/$binary" "$LOCAL_BIN/$binary"
+            fi
         fi
-    elif [ ! -f "$LOCAL_BIN/wezterm" ]; then
-        ln -sf "$WEZTERM_CLI" "$LOCAL_BIN/wezterm"
-        echo "✅ Created symlink for wezterm CLI"
-    fi
+    done
+    echo "✅ Created/updated WezTerm CLI symlinks (wezterm, wezterm-gui, wezterm-mux-server)"
+    
     # Verify wezterm command works
     if "$LOCAL_BIN/wezterm" --version &>/dev/null; then
         echo "✅ WezTerm CLI is working"
@@ -100,9 +185,15 @@ else
     # Try again after reinstall
     if [ -f "/Applications/WezTerm.app/Contents/MacOS/wezterm" ]; then
         WEZTERM_CLI="/Applications/WezTerm.app/Contents/MacOS/wezterm"
+        WEZTERM_DIR=$(dirname "$WEZTERM_CLI")
         mkdir -p "$LOCAL_BIN"
-        ln -sf "$WEZTERM_CLI" "$LOCAL_BIN/wezterm"
-        echo "✅ WezTerm reinstalled and CLI symlink created"
+        # Symlink all required binaries
+        for binary in wezterm wezterm-gui wezterm-mux-server strip-ansi-escapes; do
+            if [ -f "$WEZTERM_DIR/$binary" ]; then
+                ln -sf "$WEZTERM_DIR/$binary" "$LOCAL_BIN/$binary"
+            fi
+        done
+        echo "✅ WezTerm reinstalled and CLI symlinks created"
     else
         echo "⚠️  WezTerm installation may be incomplete. You may need to:"
         echo "   1. Manually install WezTerm from https://wezfurlong.org/wezterm/"
@@ -111,27 +202,46 @@ else
 fi
 
 # Install Zellij
-brew install zellij
+safe_brew_install zellij
 
-# Install Yazi
-brew install yazi ffmpegthumbnailer unar jq poppler fd ripgrep fzf zoxide imagemagick
+# Install Yazi and dependencies (avoid duplicates)
+safe_brew_install yazi
+safe_brew_install ffmpegthumbnailer
+safe_brew_install unar
+safe_brew_install jq
+safe_brew_install poppler
+safe_brew_install imagemagick
 
 # Install Micro editor
-brew install micro
+safe_brew_install micro
 
-# Install fzf
-brew install fzf
-$(brew --prefix)/opt/fzf/install --all
+# Install fzf (only once)
+safe_brew_install fzf
+# Install fzf shell integrations (fish will be set up later)
+if [ -f "$ACTUAL_BREW_PREFIX/opt/fzf/install" ]; then
+    "$ACTUAL_BREW_PREFIX/opt/fzf/install" --all 2>/dev/null || true
+fi
 
 # Install Atuin
-brew install atuin
+safe_brew_install atuin
 
 # Install lazygit
-brew install lazygit
+safe_brew_install lazygit
 
-# Install modern CLI tools
-brew install eza bat ripgrep fd zoxide dust duf procs bottom sd
-brew install delta glow tldr
+# Install modern CLI tools (avoid duplicates - fzf, ripgrep, fd, zoxide already installed above)
+safe_brew_install eza
+safe_brew_install bat
+safe_brew_install ripgrep
+safe_brew_install fd
+safe_brew_install zoxide
+safe_brew_install dust
+safe_brew_install duf
+safe_brew_install procs
+safe_brew_install bottom
+safe_brew_install sd
+safe_brew_install delta
+safe_brew_install glow
+safe_brew_install tldr
 
 echo ""
 echo "Step 2: Installing additional dependencies..."
@@ -143,10 +253,17 @@ if ls ~/Library/Fonts/FiraCodeNerdFont-*.ttf 2>/dev/null | grep -q .; then
     echo "Removing existing FiraCode Nerd Font files..."
     rm -f ~/Library/Fonts/FiraCodeNerdFont-*.ttf
 fi
-brew install --cask font-fira-code-nerd-font
+safe_brew_install font-fira-code-nerd-font true
 
 # Install Fisher (Fish plugin manager)
-fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"
+echo "Installing Fisher (Fish plugin manager)..."
+if [ -f "$FISH_PATH" ]; then
+    "$FISH_PATH" -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher" 2>/dev/null || {
+        echo "⚠️  Fisher installation had issues, but continuing..."
+    }
+else
+    echo "⚠️  Fish not found at $FISH_PATH, skipping Fisher installation for now"
+fi
 
 echo ""
 echo "Step 3: Setting up configurations..."
@@ -161,7 +278,8 @@ mkdir -p ~/.config/micro
 mkdir -p ~/.config/atuin
 
 # Fish configuration
-cat > ~/.config/fish/config.fish << 'EOF'
+# Use non-quoted heredoc to allow variable expansion for BREW_BIN
+cat > ~/.config/fish/config.fish << EOF
 # Fish Shell Configuration - Beginner Friendly
 
 # Remove greeting
@@ -172,7 +290,7 @@ set -gx EDITOR micro
 set -gx VISUAL micro
 
 # Path
-fish_add_path /opt/homebrew/bin
+fish_add_path $BREW_BIN
 fish_add_path ~/.local/bin
 
 # Aliases - Easy to understand
@@ -272,7 +390,7 @@ end
 EOF
 
 # Install Starship prompt
-brew install starship
+safe_brew_install starship
 
 # Starship configuration - Gruvbox theme
 cat > ~/.config/starship.toml << 'EOF'
@@ -336,7 +454,8 @@ style = "bold #83a598"
 EOF
 
 # WezTerm configuration - Gruvbox theme
-cat > ~/.config/wezterm/wezterm.lua << 'EOF'
+# Use non-quoted heredoc to allow variable expansion
+cat > ~/.config/wezterm/wezterm.lua << EOF
 -- WezTerm Configuration - Beginner Friendly with Gruvbox Theme
 
 local wezterm = require 'wezterm'
@@ -348,7 +467,18 @@ end
 
 -- Appearance
 config.color_scheme = 'GruvboxDark'
-config.font = wezterm.font('FiraCode Nerd Font', { weight = 'Regular' })
+-- Font configuration with fallback (uses correct font names from system)
+config.font = wezterm.font_with_fallback({
+  'FiraCode Nerd Font Mono',
+  'FiraCode Nerd Font Propo',
+  'FiraCode Nerd Font',
+  'Fira Code Nerd Font',
+  'Fira Code',
+  'JetBrains Mono Nerd Font',
+  'JetBrains Mono',
+  'Monaco',
+  'Menlo',
+})
 config.font_size = 14.0
 config.line_height = 1.2
 
@@ -371,7 +501,7 @@ config.use_fancy_tab_bar = true
 config.scrollback_lines = 10000
 
 -- Shell
-config.default_prog = { '/opt/homebrew/bin/fish', '-l' }
+config.default_prog = { '$FISH_PATH', '-l' }
 
 -- Cursor
 config.default_cursor_style = 'BlinkingBlock'
@@ -660,18 +790,30 @@ echo "Step 4: Setting up Fish shell..."
 echo "================================="
 
 # Install useful Fish plugins
-fish -c "fisher install PatrickF1/fzf.fish" 2>/dev/null || true
-fish -c "fisher install jorgebucaran/autopair.fish" 2>/dev/null || true
-fish -c "fisher install gazorby/fish-abbreviation-tips" 2>/dev/null || true
+if [ -f "$FISH_PATH" ] && "$FISH_PATH" -c "type -q fisher" 2>/dev/null; then
+    echo "Installing Fish plugins..."
+    "$FISH_PATH" -c "fisher install PatrickF1/fzf.fish" 2>/dev/null || true
+    "$FISH_PATH" -c "fisher install jorgebucaran/autopair.fish" 2>/dev/null || true
+    "$FISH_PATH" -c "fisher install gazorby/fish-abbreviation-tips" 2>/dev/null || true
+else
+    echo "⚠️  Fisher not available, skipping plugin installation"
+fi
 
 echo ""
-echo "Step 5: Final setup..."
-echo "======================"
+echo "Step 5: Final setup... (PRESS ENTER TO CONTINUE)"
+echo "=================================================="
+read -p "Press Enter to continue..."
 
 # Add Fish to shells if not already there
-if ! grep -q "/opt/homebrew/bin/fish" /etc/shells; then
+if [ -f "$FISH_PATH" ] && ! grep -q "$FISH_PATH" /etc/shells 2>/dev/null; then
     echo "Adding Fish to /etc/shells..."
-    echo "/opt/homebrew/bin/fish" | sudo tee -a /etc/shells
+    if sudo -n true 2>/dev/null; then
+        # Passwordless sudo available
+        echo "$FISH_PATH" | sudo tee -a /etc/shells > /dev/null
+    else
+        echo "⚠️  Please run the following command to add Fish to /etc/shells:"
+        echo "   echo '$FISH_PATH' | sudo tee -a /etc/shells"
+    fi
 fi
 
 # Initialize atuin
@@ -688,8 +830,13 @@ echo "Next steps:"
 echo "1. Restart your terminal or run: source ~/.config/fish/config.fish"
 echo "2. Verify WezTerm CLI: wezterm --version"
 echo "3. Launch WezTerm (from Applications or run: wezterm)"
-echo "4. Set Fish as default shell: chsh -s /opt/homebrew/bin/fish"
+echo "4. Set Fish as default shell: chsh -s $FISH_PATH"
 echo "5. Register for Atuin sync: atuin register (optional)"
+if [ $FAILED_INSTALLS -gt 0 ]; then
+    echo ""
+    echo "⚠️  Note: $FAILED_INSTALLS package(s) had installation issues."
+    echo "   You may want to review and reinstall them manually."
+fi
 echo ""
 echo "Quick start guide:"
 echo "  - Press Ctrl+R to search history (Atuin)"
