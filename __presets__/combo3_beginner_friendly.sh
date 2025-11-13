@@ -63,8 +63,12 @@ echo ""
 echo "Step 2: Installing additional dependencies..."
 echo "=============================================="
 
-# Install font
-brew tap homebrew/cask-fonts
+# Install font (fonts are now available directly from Homebrew, no tap needed)
+# Remove existing FiraCode Nerd Font files if they exist to avoid conflicts
+if ls ~/Library/Fonts/FiraCodeNerdFont-*.ttf 2>/dev/null | grep -q .; then
+    echo "Removing existing FiraCode Nerd Font files..."
+    rm -f ~/Library/Fonts/FiraCodeNerdFont-*.ttf
+fi
 brew install --cask font-fira-code-nerd-font
 
 # Install Fisher (Fish plugin manager)
