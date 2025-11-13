@@ -1,0 +1,40 @@
+# Yazi file manager configuration
+# Modern, fast terminal file manager
+
+[manager]
+ratio = [1, 4, 3]
+sort_by = "alphabetical"
+sort_sensitive = false
+sort_reverse = false
+sort_dir_first = true
+linemode = "none"
+show_hidden = false
+show_symlink = true
+scrolloff = 5
+
+[preview]
+tab_size = 2
+max_width = 600
+max_height = 900
+image_filter = "triangle"
+image_quality = 75
+
+[opener]
+edit = [
+  { run = 'nvim "$@"', desc = "Edit in Neovim", for = "unix" },
+  { run = 'hx "$@"', desc = "Edit in Helix", for = "unix" },
+]
+open = [
+  { run = 'open "$@"', desc = "Open", for = "macos" },
+]
+
+[plugin]
+prepend_previewers = [
+  { run = 'bat --color=always --style=numbers "$1"', desc = "Preview with bat" },
+]
+
+[theme]
+manager = { cwd = { fg = "#89B4FA" } }
+status = { separator = "#313244", separator_active = "#89B4FA" }
+syntect_theme = "Catppuccin-mocha"
+

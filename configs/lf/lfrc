@@ -1,0 +1,25 @@
+# lf file manager configuration
+
+# Colors
+set colors "catppuccin-mocha"
+
+# Show hidden files
+set hidden true
+
+# Icons
+set icons true
+
+# Preview
+set preview true
+set previewer ~/.config/lf/preview.sh
+
+# Editor
+set editor nvim
+
+# Key bindings
+map <C-o> shell-open
+map <C-t> tag
+map <C-p> tag-preview
+map <C-c> tag-clear
+map <C-r> reload
+

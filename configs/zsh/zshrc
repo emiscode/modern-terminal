@@ -1,0 +1,53 @@
+# Main zsh configuration file
+# Modular structure for easy customization
+
+# Path to zsh config directory
+ZSH_CONFIG_DIR="${HOME}/.config/zsh"
+
+# Source modular config files
+if [ -d "$ZSH_CONFIG_DIR" ]; then
+    # Path configuration (must be first)
+    [ -f "$ZSH_CONFIG_DIR/paths.zsh" ] && source "$ZSH_CONFIG_DIR/paths.zsh"
+    
+    # Plugin manager setup
+    [ -f "$ZSH_CONFIG_DIR/plugins.zsh" ] && source "$ZSH_CONFIG_DIR/plugins.zsh"
+    
+    # Aliases
+    [ -f "$ZSH_CONFIG_DIR/aliases.zsh" ] && source "$ZSH_CONFIG_DIR/aliases.zsh"
+    
+    # Functions
+    [ -f "$ZSH_CONFIG_DIR/functions.zsh" ] && source "$ZSH_CONFIG_DIR/functions.zsh"
+    
+    # Tool integrations
+    [ -f "$ZSH_CONFIG_DIR/integrations.zsh" ] && source "$ZSH_CONFIG_DIR/integrations.zsh"
+fi
+
+# Initialize Starship prompt
+if command -v starship &> /dev/null; then
+    eval "$(starship init zsh)"
+fi
+
+# History configuration
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+setopt SHARE_HISTORY
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt HIST_IGNORE_SPACE
+
+# Completion
+autoload -Uz compinit
+compinit
+
+# Key bindings
+bindkey -e  # Emacs key bindings
+bindkey '^R' history-incremental-search-backward
+
+# Options
+setopt AUTO_CD
+setopt CORRECT
+setopt EXTENDED_GLOB
+setopt NO_BEEP
+

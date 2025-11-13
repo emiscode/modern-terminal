@@ -1,0 +1,141 @@
+# Starship prompt configuration
+# Universal prompt for all shells
+
+# Add a newline before each prompt
+add_newline = true
+
+# Format: shows prompt modules
+format = """
+[╭─](bold green)$username\
+$hostname\
+$directory\
+$git_branch\
+$git_state\
+$git_status\
+$nodejs\
+$python\
+$rust\
+$golang\
+$docker_context\
+$package\
+[╰─](bold green)$character"""
+
+# Username
+[username]
+show_always = false
+style_user = "bold green"
+style_root = "bold red"
+format = "[$user]($style) "
+
+# Hostname
+[hostname]
+ssh_only = false
+format = "@[$hostname]($style) "
+trim_at = "."
+style = "bold green"
+
+# Directory
+[directory]
+truncation_length = 3
+truncation_symbol = "…/"
+format = "in [$path]($style)[$read_only]($read_only_style) "
+style = "bold cyan"
+read_only = " 🔒"
+read_only_style = "red"
+
+# Git Branch
+[git_branch]
+format = "on [$symbol$branch(:$remote_branch)]($style) "
+symbol = " "
+style = "bold purple"
+truncation_length = 20
+truncation_symbol = "…"
+
+# Git State
+[git_state]
+format = '\([$state( $progress_current/$progress_total)]($style)\) '
+style = "bold yellow"
+
+# Git Status
+[git_status]
+format = '([\[$all_status$ahead_behind\]]($style) )'
+style = "bold red"
+conflicted = "⚡"
+up_to_date = "✓"
+untracked = "?"
+ahead = "⇡${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+behind = "⇣${count}"
+stashed = "📦"
+modified = "!"
+staged = '+'
+renamed = "»"
+deleted = "✘"
+
+# Node.js
+[nodejs]
+format = "via [$symbol($version )]($style)"
+symbol = " "
+style = "bold green"
+detect_files = ["package.json", ".node-version"]
+detect_folders = ["node_modules"]
+
+# Python
+[python]
+format = "via [$symbol($version )($virtualenv )]($style)"
+symbol = " "
+style = "bold yellow"
+detect_files = [".python-version", "Pipfile", "pyproject.toml", "requirements.txt"]
+detect_folders = [".venv", "venv", "__pycache__"]
+
+# Rust
+[rust]
+format = "via [$symbol($version)]($style)"
+symbol = " "
+style = "bold red"
+detect_files = ["Cargo.toml", "Cargo.lock"]
+detect_folders = []
+
+# Go
+[golang]
+format = "via [$symbol($version )]($style)"
+symbol = " "
+style = "bold cyan"
+detect_files = ["go.mod", "go.sum", "go.work"]
+detect_folders = []
+
+# Docker
+[docker_context]
+format = "via [$symbol$context]($style) "
+symbol = " "
+style = "bold blue"
+only_with_files = true
+detect_files = ["docker-compose.yml", "docker-compose.yaml", "Dockerfile", ".dockerignore"]
+detect_folders = []
+
+# Package version
+[package]
+format = "is [$symbol$version]($style) "
+symbol = " "
+style = "bold 208"
+display_private = false
+
+# Character (prompt symbol)
+[character]
+success_symbol = "[➜](bold green)"
+error_symbol = "[➜](bold red)"
+vimcmd_symbol = "[V](bold green)"
+
+# Command duration
+[cmd_duration]
+min_time = 2_000
+format = "took [$duration]($style) "
+style = "bold yellow"
+
+# Time
+[time]
+disabled = false
+format = "at [$time]($style) "
+style = "bold white"
+use_12hr = false
+

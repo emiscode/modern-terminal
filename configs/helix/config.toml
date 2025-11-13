@@ -1,0 +1,104 @@
+# Helix editor configuration
+# Modern modal editor with built-in LSP
+
+theme = "catppuccin_mocha"
+
+[editor]
+line-number = "relative"
+mouse = true
+color-modes = true
+auto-completion = true
+auto-format = true
+auto-save = false
+idle-timeout = 400
+completion-trigger-len = 2
+auto-pairs = true
+text-width = 80
+workspace-lsp-roots = ["Cargo.toml", ".git"]
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[editor.file-picker]
+hidden = false
+follow-symlinks = true
+deduplicate-links = true
+
+[editor.statusline]
+left = ["mode", "spacer", "version-control", "spacer", "file-name", "file-modification-indicator"]
+center = ["spinner"]
+right = ["diagnostics", "spacer", "selections", "spacer", "position", "spacer", "file-encoding", "file-line-ending", "file-type"]
+separator = "│"
+mode.normal = "NORMAL"
+mode.insert = "INSERT"
+mode.select = "SELECT"
+
+[editor.lsp]
+enable = true
+auto-signature-help = true
+snippets = true
+
+[editor.soft-wrap]
+enable = true
+max-wrap = 25
+max-indent-retain = 0
+wrap-indicator = ""
+
+[editor.search]
+smart-case = true
+wrap-around = true
+
+[editor.whitespace]
+render = "all"
+characters = { tab = "→", space = "·", nbsp = "⍽" }
+
+[editor.indent-guides]
+render = true
+character = "┊"
+skip-levels = 1
+
+[editor.gutters]
+diagnostics = true
+line-numbers = true
+spacing = 1
+
+[editor.auto-format]
+format-on-save = true
+
+# Key bindings
+[keys.normal]
+C-s = ":write"
+C-o = ":open"
+C-q = ":quit"
+C-w = ":close"
+C-h = "jump_view_left"
+C-j = "jump_view_down"
+C-k = "jump_view_up"
+C-l = "jump_view_right"
+space.w = ":write"
+space.q = ":quit"
+space.o = ":open"
+space.f = ":format"
+space.s = ":set option value"
+space.t = ":theme"
+
+[keys.normal.space]
+b = ":buffer-close"
+c = ":clipboard-yank"
+v = ":clipboard-yank-join"
+x = ":clipboard-yank-join"
+y = ":clipboard-yank-join"
+Y = ":clipboard-yank-join-line"
+
+[keys.insert]
+C-s = ":write"
+C-q = ":quit"
+C-w = ":close"
+
+[keys.select]
+C-s = ":write"
+C-q = ":quit"
+C-w = ":close"
+

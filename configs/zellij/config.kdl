@@ -1,0 +1,159 @@
+// Zellij configuration
+// Modern terminal multiplexer with tiling
+
+// Default mode
+default_mode "locked"
+
+// Simplified UI (can be toggled with Ctrl-g)
+simplified_ui true
+
+// Mouse mode
+mouse_mode true
+
+// Scrollback editor
+scrollback_editor "nvim"
+
+// Themes - Catppuccin Mocha
+themes {
+    catppuccin-mocha {
+        bg "#1e1e2e"
+        fg "#cdd6f4"
+        red "#f38ba8"
+        green "#a6e3a1"
+        blue "#89b4fa"
+        yellow "#f9e2af"
+        magenta "#cba6f7"
+        orange "#fab387"
+        cyan "#94e2d5"
+        black "#45475a"
+        white "#bac2de"
+    }
+}
+
+default_shell "zsh"
+
+// Key bindings
+keybinds {
+    shared {
+        // Switch to normal mode
+        bind "Ctrl g" { SwitchToMode "Normal"; }
+        
+        // Quit
+        bind "Ctrl q" { Quit; }
+        
+        // Scroll up/down
+        bind "Ctrl u" { ScrollUp; }
+        bind "Ctrl d" { ScrollDown; }
+    }
+    
+    locked {
+        // Unlock
+        bind "Ctrl g" { SwitchToMode "Normal"; }
+    }
+    
+    normal {
+        // Switch to locked mode
+        bind "Ctrl g" { SwitchToMode "Locked"; }
+        
+        // Create new pane
+        bind "n" { NewPane; SwitchToMode "Normal"; }
+        bind "N" { NewPaneWithDirection "Down"; SwitchToMode "Normal"; }
+        bind "h" { NewPaneWithDirection "Left"; SwitchToMode "Normal"; }
+        bind "v" { NewPaneWithDirection "Right"; SwitchToMode "Normal"; }
+        
+        // Split panes
+        bind "s" { SplitDown; SwitchToMode "Normal"; }
+        bind "S" { SplitRight; SwitchToMode "Normal"; }
+        
+        // Close pane
+        bind "x" { ClosePane; SwitchToMode "Normal"; }
+        
+        // Focus navigation
+        bind "h" { MoveFocus "Left"; }
+        bind "j" { MoveFocus "Down"; }
+        bind "k" { MoveFocus "Up"; }
+        bind "l" { MoveFocus "Right"; }
+        
+        // Resize panes
+        bind "H" { Resize "Increase Left"; }
+        bind "J" { Resize "Increase Down"; }
+        bind "K" { Resize "Increase Up"; }
+        bind "L" { Resize "Increase Right"; }
+        
+        // Switch to tab
+        bind "Tab" { NextTab; }
+        bind "Shift Tab" { PreviousTab; }
+        
+        // Create new tab
+        bind "t" { NewTab; SwitchToMode "Normal"; }
+        
+        // Close tab
+        bind "X" { CloseTab; SwitchToMode "Normal"; }
+        
+        // Go to tab number
+        bind "1" { GoToTab 1; SwitchToMode "Normal"; }
+        bind "2" { GoToTab 2; SwitchToMode "Normal"; }
+        bind "3" { GoToTab 3; SwitchToMode "Normal"; }
+        bind "4" { GoToTab 4; SwitchToMode "Normal"; }
+        bind "5" { GoToTab 5; SwitchToMode "Normal"; }
+        bind "6" { GoToTab 6; SwitchToMode "Normal"; }
+        bind "7" { GoToTab 7; SwitchToMode "Normal"; }
+        bind "8" { GoToTab 8; SwitchToMode "Normal"; }
+        bind "9" { GoToTab 9; SwitchToMode "Normal"; }
+        
+        // Toggle fullscreen
+        bind "f" { ToggleFocusFullscreen; SwitchToMode "Normal"; }
+        
+        // Toggle floating pane
+        bind "w" { ToggleFloatingPanes; SwitchToMode "Normal"; }
+        
+        // Launch plugin
+        bind "p" { LaunchPlugin "zellij:tab-bar"; SwitchToMode "Normal"; }
+    }
+    
+    resize {
+        bind "h" { Resize "Increase Left"; }
+        bind "j" { Resize "Increase Down"; }
+        bind "k" { Resize "Increase Up"; }
+        bind "l" { Resize "Increase Right"; }
+        bind "Left" { Resize "Increase Left"; }
+        bind "Down" { Resize "Increase Down"; }
+        bind "Up" { Resize "Increase Up"; }
+        bind "Right" { Resize "Increase Right"; }
+        bind "Ctrl h" { Resize "Decrease Left"; }
+        bind "Ctrl j" { Resize "Decrease Down"; }
+        bind "Ctrl k" { Resize "Decrease Up"; }
+        bind "Ctrl l" { Resize "Decrease Right"; }
+        bind "Ctrl Left" { Resize "Decrease Left"; }
+        bind "Ctrl Down" { Resize "Decrease Down"; }
+        bind "Ctrl Up" { Resize "Decrease Up"; }
+        bind "Ctrl Right" { Resize "Decrease Right"; }
+        bind "Esc" { SwitchToMode "Normal"; }
+    }
+}
+
+// Layouts
+layouts {
+    default {
+        cwd "/Users/$USER"
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+}
+
+// UI
+ui {
+    pane_frames {
+        rounded_corners true
+        hide_session_name false
+    }
+}
+
+// Apply theme
+theme "catppuccin-mocha"
+

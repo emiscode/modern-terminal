@@ -1,0 +1,68 @@
+# Alacritty configuration
+# Minimal, GPU-accelerated terminal
+
+[env]
+TERM = "xterm-256color"
+
+[window]
+padding = { x = 8, y = 8 }
+opacity = 1.0
+decorations = "buttonless"
+startup_mode = "Windowed"
+
+[scrolling]
+history = 10000
+multiplier = 3
+
+[font]
+normal = { family = "JetBrains Mono Nerd Font", style = "Regular" }
+bold = { family = "JetBrains Mono Nerd Font", style = "Bold" }
+italic = { family = "JetBrains Mono Nerd Font", style = "Italic" }
+size = 13.0
+
+[cursor]
+style = "Block"
+blinking = "On"
+blink_interval = 500
+
+[colors.primary]
+background = "#1E1E2E"
+foreground = "#CDD6F4"
+
+[colors.cursor]
+text = "#1E1E2E"
+cursor = "#CDD6F4"
+
+[colors.selection]
+text = "#CDD6F4"
+background = "#313244"
+
+[colors.normal]
+black = "#11111B"
+red = "#F38BA8"
+green = "#A6E3A1"
+yellow = "#F9E2AF"
+blue = "#89B4FA"
+magenta = "#CBA6F7"
+cyan = "#94E2D5"
+white = "#BAC2DE"
+
+[colors.bright]
+black = "#585B70"
+red = "#F38BA8"
+green = "#A6E3A1"
+yellow = "#F9E2AF"
+blue = "#89B4FA"
+magenta = "#CBA6F7"
+cyan = "#94E2D5"
+white = "#CDD6F4"
+
+[shell]
+program = "/opt/homebrew/bin/zsh"
+args = ["-l"]
+
+[bell]
+animation = "EaseOutExpo"
+duration = 0
+color = "#F9E2AF"
+

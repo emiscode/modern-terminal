@@ -1,0 +1,20 @@
+# nnn file manager configuration
+
+# Show hidden files
+export NNN_OPTS="H"
+
+# Use nerd icons
+export NNN_ICONS="1"
+
+# Colors (Catppuccin Mocha inspired)
+export NNN_FCOLORS='c1e2272e006033f7c6d6abc4'
+
+# Bookmark locations
+export NNN_BMS="d:~/Downloads;D:~/Documents;c:~/.config;h:~;p:~/Projects"
+
+# Plugin keybinds
+export NNN_PLUG='f:fzcd;o:fzopen;p:preview-tui;d:diffs;t:nmount;v:imgview'
+
+# Editor
+export EDITOR="nvim"
+

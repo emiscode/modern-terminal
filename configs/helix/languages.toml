@@ -1,0 +1,37 @@
+# Helix language server configuration
+
+[[language]]
+name = "rust"
+auto-format = true
+formatter = { command = "rustfmt" }
+
+[[language]]
+name = "python"
+auto-format = true
+formatter = { command = "black", args = ["--quiet", "-"] }
+
+[[language]]
+name = "javascript"
+auto-format = true
+formatter = { command = "prettier", args = ["--stdin-filepath", "$FILENAME"] }
+
+[[language]]
+name = "typescript"
+auto-format = true
+formatter = { command = "prettier", args = ["--stdin-filepath", "$FILENAME"] }
+
+[[language]]
+name = "json"
+auto-format = true
+formatter = { command = "jq" }
+
+[[language]]
+name = "yaml"
+auto-format = true
+formatter = { command = "yq", args = ["-P", "-"] }
+
+[[language]]
+name = "markdown"
+auto-format = true
+formatter = { command = "prettier", args = ["--stdin-filepath", "$FILENAME"] }
+
