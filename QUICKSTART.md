@@ -15,7 +15,7 @@ Get your modern terminal setup running in minutes!
 ```bash
 cd modern-terminal
 ./scripts/install-all.sh
-./scripts/setup-configs.sh
+sudo ./scripts/setup-configs.sh
 ```
 
 ### Option 2: Install Step by Step
@@ -34,7 +34,7 @@ cd modern-terminal
 ./scripts/install-devtools.sh
 
 # 5. Setup configurations
-./scripts/setup-configs.sh
+sudo ./scripts/setup-configs.sh
 ```
 
 ## Choose Your Setup

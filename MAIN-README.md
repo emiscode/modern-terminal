@@ -22,7 +22,7 @@ A comprehensive, modular terminal environment setup for macOS developers. Test a
 ./scripts/install-all.sh
 
 # Setup configurations
-./scripts/setup-configs.sh
+sudo ./scripts/setup-configs.sh
 
 # Choose a setup (see setups/ directory)
 ```

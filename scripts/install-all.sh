@@ -52,7 +52,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "Next steps:"
 echo "1. Review the configuration files in configs/"
-echo "2. Run the setup script: ./scripts/setup-configs.sh"
+echo "2. Run the setup script: sudo ./scripts/setup-configs.sh"
 echo "3. Restart your terminal or run: source ~/.zshrc"
 echo "4. Check SETUPS.md for different setup combinations"
 

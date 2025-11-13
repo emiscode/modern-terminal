@@ -24,7 +24,7 @@
 
 2. Setup configurations:
    ```bash
-   ./scripts/setup-configs.sh
+   sudo ./scripts/setup-configs.sh
    ```
 
 3. Install tmux plugin manager:
