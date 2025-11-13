@@ -44,7 +44,12 @@
    atuin import auto
    ```
 
-6. Reload shell:
+6. Fix completion errors (if any):
+   ```bash
+   ./scripts/fix-completions.sh
+   ```
+
+7. Reload shell:
    ```bash
    source ~/.zshrc
    ```

@@ -39,7 +39,7 @@ setopt HIST_IGNORE_SPACE
 
 # Completion
 autoload -Uz compinit
-compinit
+compinit -u  # -u flag ignores missing completion files (prevents errors from broken symlinks)
 
 # Key bindings
 bindkey -e  # Emacs key bindings

@@ -49,6 +49,12 @@
    atuin import auto
    ```
 
+7. Fix completion errors (if any):
+   ```bash
+   ./scripts/fix-completions.sh
+   ```
+   This script handles missing completion files (like wezterm) that may cause errors when sourcing zshrc.
+
 ## Key Bindings
 
 - **tmux**: `Ctrl-a` prefix
@@ -96,4 +102,25 @@ All configs are modular:
 - Configure LSP servers per project
 - Use atuin sync for history across machines
 - Customize Starship for your workflow
+
+## Troubleshooting
+
+### Completion Errors
+
+If you see errors like `compinit:527: no such file or directory: /opt/homebrew/share/zsh/site-functions/_wezterm`:
+
+1. **Quick fix**: The zshrc config already uses `compinit -u` to ignore missing files, but if you still see errors:
+   ```bash
+   ./scripts/fix-completions.sh
+   ```
+
+2. **Manual fix**: Reinstall the terminal emulator to regenerate completions:
+   ```bash
+   brew reinstall --cask wezterm
+   ```
+
+3. **Verify**: Check that your zshrc uses `compinit -u`:
+   ```bash
+   grep compinit ~/.zshrc
+   ```
 

@@ -352,6 +352,30 @@ ranger
 2. Set font in terminal emulator config
 3. Restart terminal
 
+### Issue: Completion errors when sourcing zshrc
+
+**Error**: `compinit:527: no such file or directory: /opt/homebrew/share/zsh/site-functions/_wezterm`
+
+**Solution**:
+1. **Quick fix**: Run the fix script:
+   ```bash
+   ./scripts/fix-completions.sh
+   ```
+   This will remove broken symlinks and verify your zshrc uses `compinit -u`.
+
+2. **Manual fix**: Reinstall the package to regenerate completions:
+   ```bash
+   brew reinstall --cask wezterm  # or alacritty, ghostty
+   ```
+
+3. **Verify**: Check that zshrc uses `compinit -u`:
+   ```bash
+   grep compinit ~/.zshrc
+   ```
+   Should show: `compinit -u`
+
+**Note**: The default zshrc config already includes `compinit -u` to prevent these errors.
+
 ### Issue: fzf not working
 
 **Solution**:

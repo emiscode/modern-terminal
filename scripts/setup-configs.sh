@@ -86,4 +86,5 @@ echo "Note: Some tools may need additional setup:"
 echo "- Run 'atuin import auto' to import shell history"
 echo "- Run 'zellij setup --generate-config' if needed"
 echo "- Configure atuin sync: 'atuin register' (optional)"
+echo "- If you see completion errors, run: ./scripts/fix-completions.sh"
 

@@ -126,7 +126,26 @@ All configs are in `~/.config/`:
 
 ## Troubleshooting
 
-See `docs/VALIDATION.md` for common issues and solutions.
+### Completion Errors
+
+If you see errors when sourcing zshrc like:
+```
+compinit:527: no such file or directory: /opt/homebrew/share/zsh/site-functions/_wezterm
+```
+
+Run the fix script:
+```bash
+./scripts/fix-completions.sh
+```
+
+This will:
+- Remove broken completion symlinks
+- Offer to reinstall packages to regenerate completions
+- Verify your zshrc uses `compinit -u` (which ignores missing files)
+
+### Other Issues
+
+See `docs/VALIDATION.md` for complete troubleshooting guide.
 
 ## Documentation
 
