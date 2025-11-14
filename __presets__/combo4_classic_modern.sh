@@ -62,8 +62,7 @@ echo ""
 echo "Step 2: Installing additional dependencies..."
 echo "=============================================="
 
-# Install font
-brew tap homebrew/cask-fonts
+# Install font (fonts are now in main Homebrew cask repository)
 brew install --cask font-meslo-lg-nerd-font
 
 # Install tmux plugin manager
