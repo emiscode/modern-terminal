@@ -32,7 +32,43 @@ echo "=================================="
 
 # zsh should already be installed on macOS
 # Install Alacritty
-brew install --cask alacritty
+# Check if Alacritty is actually available (command exists or app exists)
+alacritty_installed=false
+if command -v alacritty &> /dev/null; then
+    alacritty_installed=true
+elif [ -d "/Applications/Alacritty.app" ]; then
+    alacritty_installed=true
+elif brew list --cask alacritty &> /dev/null; then
+    # Homebrew says it's installed, but verify it's actually there
+    if [ -d "/Applications/Alacritty.app" ]; then
+        alacritty_installed=true
+    else
+        echo "⚠️  Homebrew reports Alacritty installed, but app not found. Reinstalling..."
+        brew uninstall --cask alacritty 2>/dev/null || true
+        alacritty_installed=false
+    fi
+fi
+
+if [ "$alacritty_installed" = false ]; then
+    echo "Installing Alacritty..."
+    set +e  # Temporarily disable exit on error
+    brew install --cask alacritty
+    install_status=$?
+    set -e  # Re-enable exit on error
+    if [ $install_status -ne 0 ]; then
+        echo "⚠️  Warning: Failed to install Alacritty."
+        echo "   You can try manually: brew install --cask alacritty"
+    else
+        echo "✅ Alacritty installed successfully"
+        # Verify installation
+        if [ ! -d "/Applications/Alacritty.app" ] && ! command -v alacritty &> /dev/null; then
+            echo "⚠️  Warning: Installation completed but Alacritty not found in /Applications"
+            echo "   Try: brew reinstall --cask alacritty"
+        fi
+    fi
+else
+    echo "✅ Alacritty already installed"
+fi
 
 # Install tmux
 brew install tmux
@@ -61,8 +97,7 @@ echo ""
 echo "Step 2: Installing additional dependencies..."
 echo "=============================================="
 
-# Install font
-brew tap homebrew/cask-fonts
+# Install font (fonts are now in main Homebrew cask repository)
 brew install --cask font-hack-nerd-font
 
 # Install tmux plugin manager
